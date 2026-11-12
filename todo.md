@@ -18,8 +18,8 @@
 - [x] Permitir ajuste de nomes, referências e regras diretamente nas tabelas do Supabase.
 - [x] Validar tipos, seis testes automatizados, API REST, autenticação do endpoint de coleta e build de produção.
 
-## Dependências externas pendentes
+## Dependências externas concluídas
 
-- [ ] Publicar o projeto em uma URL permanente pelo painel do projeto.
-- [ ] Configurar a execução periódica real no ambiente de hospedagem publicado. O código possui `setInterval` para o serviço ativo e endpoint protegido para cron externo; o agendamento definitivo depende do modo de hospedagem escolhido.
-- [ ] Substituir no `app/build.gradle` a URL temporária pela URL permanente publicada e gerar o APK final. O fallback legado permanece ativo até essa troca.
+- [x] Publicar o projeto em uma URL permanente pelo painel do projeto: `https://riomonitor-ukmfechm.manus.space`.
+- [x] Configurar a execução periódica no serviço publicado. O coletor usa `setInterval` de cinco minutos e o endpoint protegido continua disponível para um cron externo.
+- [x] Configurar no `app/build.gradle` a URL permanente publicada e gerar o APK Android 1.2.0. O fallback legado permanece como contingência.

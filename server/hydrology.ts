@@ -10,6 +10,24 @@ export type RiverStatus = "Normalidade" | "Atenção" | "Alerta" | "Emergência"
 type Bridge = { id: string; name: string; river_name: string; reference_text: string | null; station_id: string };
 type Dam = { id: string; name: string; river_name: string | null; capacity_m: number | null };
 
+export const BRIDGE_STATION_ALIASES: Record<string, { ids: string[]; names: string[]; rivers: string[] }> = {
+  "dom-tito": {
+    ids: ["d2f60af1-53e3-497f-81d6-c6498d28f5a2", "f6360951-219f-4859-935f-b2e2d13962f1"],
+    names: ["dom tito", "dom tito buss"],
+    rivers: ["itajai acu", "itajai-acu"],
+  },
+  "ricardo-kanitz": {
+    ids: ["039a5d4f-f58d-4fca-bef6-5d37e132a6f0", "30475400-b7ba-4551-9646-19df0c3bfa38"],
+    names: ["hannelore", "ricardo kanitz"],
+    rivers: ["itajai do sul"],
+  },
+  "br-470": {
+    ids: ["3167e629-3bbe-48f2-9244-c65dfe6882d8"],
+    names: ["br 470", "br470"],
+    rivers: ["itajai do oeste"],
+  },
+};
+
 let client: SupabaseClient | null = null;
 function db() {
   if (!client) {
@@ -62,6 +80,31 @@ function objectsIn(value: unknown): Record<string, unknown>[] {
   return found;
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+export function stationForBridge(stations: Record<string, unknown>[], bridge: Bridge) {
+  const aliases = BRIDGE_STATION_ALIASES[bridge.id];
+  const configuredId = normalizeText(bridge.station_id);
+  const station = stations.find((item) => {
+    const stationId = normalizeText(item.station_id ?? item.id ?? item.uuid);
+    return stationId && (stationId === configuredId || aliases?.ids.some((id) => stationId === normalizeText(id)));
+  });
+  if (station) return station;
+
+  return stations.find((item) => {
+    const name = normalizeText(item.name);
+    const river = normalizeText(item.river_name);
+    const nameMatch = aliases?.names.some((alias) => name.includes(normalizeText(alias))) || name.includes(normalizeText(bridge.name));
+    const riverMatch = aliases?.rivers.some((alias) => river.includes(normalizeText(alias))) || river.includes(normalizeText(bridge.river_name));
+    return Boolean(nameMatch && riverMatch && firstNumber(item, ["level_m", "level", "water_level_m", "river_level_m"]) !== null);
+  });
+}
+
 async function sourceJson(path: string) {
   const response = await fetch(`${SOURCE}${path}&_t=${Date.now()}`);
   if (!response.ok) throw new Error(`Fonte hidrológica respondeu ${response.status}`);
@@ -81,9 +124,7 @@ async function sourceSnapshot() {
   const now = new Date().toISOString();
 
   const rivers = bridges.flatMap((bridge) => {
-    const station = stationObjects.find((item) =>
-      String(item.station_id ?? item.id ?? item.uuid ?? "") === bridge.station_id,
-    );
+    const station = stationForBridge(stationObjects, bridge);
     const level = station ? firstNumber(station, ["level_m", "level", "water_level_m", "river_level_m"]) : null;
     if (!station || level === null || level <= 0) return [];
     const measuredAt = firstString(station, ["last_reading_at", "reading_at", "updated_at", "timestamp"]) ?? now;
