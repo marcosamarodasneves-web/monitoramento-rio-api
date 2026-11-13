@@ -18,6 +18,8 @@ Chuva, estações a montante, ocupação das barragens e manobras são contexto 
 
 ## Implantação
 
-Fonte no GitHub e APK compilado não implicam que o novo backend esteja publicado. É necessário publicar o checkpoint WebDev correspondente e depois ativar o HTTP cron do projeto, a cada cinco minutos. A rota exige identidade de cron e registro habilitado em `forecast_jobs`. Sem cron ativo, a instância serverless não mantém coleta garantida ao ficar ociosa.
+O proprietário publicou o backend v2 em 12/11/2026. O HTTP cron do projeto foi habilitado para cinco minutos, com identidade de cron vinculada ao registro habilitado em `forecast_jobs`. Foram verificadas duas execuções automáticas HTTP 200, concluídas às 22:16:17 e 22:22:32 (Brasília). Cada execução registrou três rios, duas barragens e nove previsões. A API publicada retornou o modelo v2 e seus três horizontes para cada ponte.
+
+O intervalo real entre essas conclusões foi 375 segundos. A configuração de cinco minutos não garante despacho ou gravação exatamente a cada 300 segundos. Novas instalações precisam criar e vincular seu próprio cron após publicar; o SQL inicial não reativa automaticamente outro projeto.
 
 A precisão deve ser acompanhada por ponte e horizonte: MAE em cm, cobertura da margem e número de casos conferidos. Ausência de leitura real deve ser registrada como `sem_medicao`, sem contar como acerto nem erro. As previsões não substituem avisos da Defesa Civil.

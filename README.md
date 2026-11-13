@@ -40,7 +40,7 @@ A rota `/api/scheduled/hydrology` aceita somente chamadas assinadas como cron da
 
 **Publicar o checkpoint que contém esse callback antes de criar o agendamento.** Depois da publicação, o proprietário pode criar um Heartbeat do projeto com expressão UTC `0 */5 * * * *`, caminho `/api/scheduled/hydrology`, e registrar o `task_uid` retornado na linha `hydrology-collector` de `forecast_jobs`, com `enabled=true`. Não ativar dois cron jobs para o mesmo coletor. Um endpoint implantado e um agendamento habilitado são verificações diferentes.
 
-O registro foi preparado desativado; ativação depende da publicação do novo backend. Os fontes no GitHub, por si só, não atualizam a URL publicada.
+Nesta instalação, o backend v2 foi publicado e o cron `hydrology-collector-v2` foi ativado em 12/11/2026, vinculado ao registro interno pelo task_uid `63qXcXq8f5vJxdgWsKZpTC`. Foram confirmadas duas chamadas automáticas HTTP 200, concluídas às 22:16:17 e 22:22:32 (Brasília), cada uma com três rios, duas barragens e nove previsões novas. O cron está configurado para cinco minutos; o intervalo observado entre as conclusões foi 375 segundos, portanto pode haver atraso de despacho da plataforma. Não há garantia de precisão de 300 segundos entre gravações.
 
 ## Instalação e validação
 

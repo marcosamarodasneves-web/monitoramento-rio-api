@@ -17,9 +17,9 @@
 - [x] Validar tipos e 41 testes backend, build de produção e contrato REST.
 - [x] Executar avaliação temporal contra nível persistente; amostra pequena não demonstra superioridade consistente.
 
-## Para entrar em produção
+## Produção ativada e verificada
 
-Publicar o checkpoint final no WebDev. Após a publicação, ativar um único Heartbeat HTTP do projeto para `/api/scheduled/hydrology`, expressão UTC `0 */5 * * * *`, registrar seu task_uid em forecast_jobs e verificar execução real. O registro foi preparado desativado. Fonte atualizada no GitHub não equivale a backend publicado.
+O checkpoint v2 foi publicado pelo proprietário em 12/11/2026. Um único Heartbeat `hydrology-collector-v2`, expressão UTC `0 */5 * * * *`, foi habilitado e vinculado por task_uid a forecast_jobs. Duas execuções automáticas concluíram HTTP 200 às 22:16:17 e 22:22:32, com três rios, duas barragens e nove previsões em cada chamada. A rota publicada retornou previsões v2 disponíveis das três pontes. O intervalo observado entre conclusões foi 375 segundos: cron de cinco minutos não significa precisão exata de 300 segundos na gravação.
 
 ## Limites hidrológicos
 
