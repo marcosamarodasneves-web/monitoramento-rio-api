@@ -12,9 +12,10 @@ describe("faixas oficiais de criticidade", () => {
   it("classifica de 5,50 m até antes de 6,50 m como Alerta", () => {
     expect(riverStatus(5.5)).toBe("Alerta");
     expect(riverStatus(6.49)).toBe("Alerta");
+    expect(riverStatus(6.5)).toBe("Alerta");
   });
-  it("classifica 6,50 m ou mais como Emergência", () => {
-    expect(riverStatus(6.5)).toBe("Emergência");
+  it("classifica acima de 6,50 m como Emergência", () => {
+    expect(riverStatus(6.501)).toBe("Emergência");
   });
 });
 

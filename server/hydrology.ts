@@ -1,4 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getCentralForecasts, recordAndResolveForecasts } from "./forecast";
+import { collectForecastContext, finiteNumber } from "./forecast-sources";
 
 const CITY_ID = "4214805";
 const SOURCE = "https://public.asthon.com.br";
@@ -42,13 +44,12 @@ function db() {
 export function riverStatus(level: number): RiverStatus {
   if (level < 4.5) return "Normalidade";
   if (level < 5.5) return "Atenção";
-  if (level < 6.5) return "Alerta";
+  if (level <= 6.5) return "Alerta";
   return "Emergência";
 }
 
 function numberFrom(value: unknown): number | null {
-  const n = typeof value === "number" ? value : Number(String(value ?? "").replace(",", "."));
-  return Number.isFinite(n) ? n : null;
+  return finiteNumber(value);
 }
 
 function firstNumber(object: Record<string, unknown>, keys: string[]) {
@@ -106,7 +107,7 @@ export function stationForBridge(stations: Record<string, unknown>[], bridge: Br
 }
 
 async function sourceJson(path: string) {
-  const response = await fetch(`${SOURCE}${path}&_t=${Date.now()}`);
+  const response = await fetch(`${SOURCE}${path}&_t=${Date.now()}`, { signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error(`Fonte hidrológica respondeu ${response.status}`);
   return response.json();
 }
@@ -116,9 +117,11 @@ async function sourceSnapshot() {
   const dams = (await db().from("dams").select("*").eq("active", true)).data as Dam[] | null;
   if (!bridges || !dams) throw new Error("Não foi possível carregar a configuração hidrológica");
 
-  const panel = await sourceJson(`/public/panel?city_id=${CITY_ID}&include_geometry=false`);
-  const live = await sourceJson(`/public/stations/live?city_id=${CITY_ID}`);
-  const damPayload = await sourceJson(`/public/dams?city_id=${CITY_ID}`);
+  const [panel, live, damPayload] = await Promise.all([
+    sourceJson(`/public/panel?city_id=${CITY_ID}&include_geometry=false`),
+    sourceJson(`/public/stations/live?city_id=${CITY_ID}`),
+    sourceJson(`/public/dams?city_id=${CITY_ID}`),
+  ]);
   const stationObjects = [...objectsIn(panel), ...objectsIn(live)];
   const damObjects = objectsIn(damPayload);
   const now = new Date().toISOString();
@@ -127,13 +130,15 @@ async function sourceSnapshot() {
     const station = stationForBridge(stationObjects, bridge);
     const level = station ? firstNumber(station, ["level_m", "level", "water_level_m", "river_level_m"]) : null;
     if (!station || level === null || level <= 0) return [];
-    const measuredAt = firstString(station, ["last_reading_at", "reading_at", "updated_at", "timestamp"]) ?? now;
+    const measuredAt = firstString(station, ["last_reading_at", "reading_at", "updated_at", "timestamp"]);
+    if (!measuredAt || !Number.isFinite(Date.parse(measuredAt)) || Date.parse(measuredAt) > Date.now()) return [];
     return [{ bridgeId: bridge.id, measuredAt, levelM: level, status: riverStatus(level), variationCm: firstNumber(station, ["variation_cm", "variation"]) }];
   });
 
   const damsOut = dams.flatMap((dam) => {
     const wanted = dam.name.toLowerCase();
     const item = damObjects.find((candidate) => {
+      if (firstNumber(candidate, ["nivel_m", "level_m", "upstream_level_m", "montante_m"]) === null) return false;
       const text = JSON.stringify(candidate).toLowerCase();
       return text.includes(wanted) || (wanted === "taió" && text.includes("taio")) || (wanted === "ituporanga" && text.includes("ituporanga"));
     });
@@ -146,7 +151,8 @@ async function sourceSnapshot() {
     const gatesTotal = firstNumber(item, ["comportas_total", "gates_total", "total_gates", "gate_count"]) ?? gateStates.length;
     return [{ damId: dam.id, measuredAt: firstString(item, ["last_reading_at", "reading_at", "updated_at", "timestamp"]) ?? now, levelM, occupancyPercent, gatesOpen, gatesTotal, gateStates }];
   });
-  return { rivers, dams: damsOut };
+  const forecastContext = await collectForecastContext(panel);
+  return { rivers, dams: damsOut, forecastContext };
 }
 
 async function latestRows(table: string) {
@@ -182,7 +188,12 @@ async function dueTargets() {
 
 export async function collectTick() {
   const { riverDue, damDue } = await dueTargets();
-  if (!riverDue.length && !damDue.length) return { skipped: true, rivers: 0, dams: 0 };
+  if (!riverDue.length && !damDue.length) {
+    const bridgeRows = await db().from("bridges").select("id,station_id").eq("active", true);
+    if (bridgeRows.error) throw bridgeRows.error;
+    const forecasts = await recordAndResolveForecasts(db(), bridgeRows.data ?? []);
+    return { skipped: true, rivers: 0, dams: 0, forecasts };
+  }
   const run = await db().from("collector_runs").insert({ success: false }).select("id").single();
   const payload = await sourceSnapshot();
   const rivers = payload.rivers.filter((row) => riverDue.includes(row.bridgeId));
@@ -192,8 +203,14 @@ export async function collectTick() {
   const error = riverInsert?.error ?? damInsert?.error;
   if (run.data?.id) await db().from("collector_runs").update({ finished_at: new Date().toISOString(), success: !error, rivers_saved: rivers.length, dams_saved: dams.length, error_message: error?.message ?? null }).eq("id", run.data.id);
   if (error) throw error;
-  await db().rpc("cleanup_old_hydrology_readings");
-  return { skipped: false, rivers: rivers.length, dams: dams.length };
+  const cleanup = await db().rpc("cleanup_old_hydrology_readings");
+  if (cleanup.error) throw cleanup.error;
+  const contextSaved = await db().from("forecast_context").upsert({ collected_at: payload.forecastContext.captured_at, source: "Defesa Civil — telemetria pública", payload: payload.forecastContext });
+  if (contextSaved.error) throw contextSaved.error;
+  const bridgeRows = await db().from("bridges").select("id,station_id").eq("active", true);
+  if (bridgeRows.error) throw bridgeRows.error;
+  const forecasts = await recordAndResolveForecasts(db(), bridgeRows.data ?? []);
+  return { skipped: false, rivers: rivers.length, dams: dams.length, forecasts };
 }
 
 export async function getSnapshot() {
@@ -209,6 +226,10 @@ export async function getHistory(days = 1) {
   return { rivers: rivers.data ?? [], dams: dams.data ?? [] };
 }
 
+export async function getForecasts(bridge?: string, hours = 24) {
+  return getCentralForecasts(db(), bridge, hours);
+}
+
 export async function registerAccess(kind: "app" | "api" = "api") {
   const date = new Date().toISOString().slice(0, 10);
   const field = kind === "app" ? "app_opens" : "api_requests";
@@ -218,8 +239,9 @@ export async function registerAccess(kind: "app" | "api" = "api") {
   return { date, [field]: value };
 }
 
-export function startCollector() {
-  const run = () => collectTick().catch((error) => console.error("[Collector]", error));
-  run();
-  return setInterval(run, 5 * 60 * 1000);
+export async function isRegisteredCollectorJob(taskUid: string) {
+  const result = await db().from("forecast_jobs").select("job_key")
+    .eq("schedule_cron_task_uid", taskUid).eq("enabled", true).maybeSingle();
+  if (result.error) throw result.error;
+  return Boolean(result.data);
 }
