@@ -38,7 +38,7 @@ export default function Home() {
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-5 py-7">
         {snapshot.error && <Card className="border-red-200 bg-red-50"><CardContent className="p-5 text-sm text-red-800">Não foi possível ler o banco agora. Verifique as credenciais do Supabase e tente novamente.</CardContent></Card>}
-        <section className="grid gap-4 sm:grid-cols-3"><Metric icon={<Waves size={18} />} label="Pontes monitoradas" value={String(snapshot.data?.bridges.length ?? 0)} /><Metric icon={<Gauge size={18} />} label="Barragens monitoradas" value={String(snapshot.data?.dams.length ?? 0)} /><Metric icon={<Database size={18} />} label="Retenção" value="7 dias" /></section>
+        <section className="grid gap-4 sm:grid-cols-3"><Metric icon={<Waves size={18} />} label="Pontes monitoradas" value={String(snapshot.data?.bridges.length ?? 0)} /><Metric icon={<Gauge size={18} />} label="Barragens monitoradas" value={String(snapshot.data?.dams.length ?? 0)} /><Metric icon={<Database size={18} />} label="Retenção" value="60 dias" /></section>
         <section className="grid gap-5 lg:grid-cols-3">
           {rivers.length === 0 && <Card className="lg:col-span-3"><CardContent className="flex items-center gap-2 p-8 text-slate-500">{snapshot.isLoading && <Loader2 className="animate-spin" size={18} />} Aguardando a primeira coleta da fonte oficial.</CardContent></Card>}
           {rivers.map((row: any) => <RiverCard key={row.bridge_id} row={row} bridge={snapshot.data?.bridges.find((b: any) => b.id === row.bridge_id)} points={riverChart(row.bridge_id)} />)}

@@ -4,7 +4,7 @@ import { collectForecastContext, finiteNumber } from "./forecast-sources";
 
 const CITY_ID = "4214805";
 const SOURCE = "https://public.asthon.com.br";
-const RETENTION_DAYS = 7;
+export const RETENTION_DAYS = 60;
 export const COLLECTION_INTERVAL_MINUTES = 5;
 
 export type RiverStatus = "Normalidade" | "Atenção" | "Alerta" | "Emergência";
@@ -220,10 +220,21 @@ export async function getSnapshot() {
 }
 
 export async function getHistory(days = 1) {
+  if (!Number.isFinite(days) || days < 1 || days > RETENTION_DAYS) throw new Error('days deve estar entre 1 e 60');
   const since = new Date(Date.now() - Math.min(days, RETENTION_DAYS) * 86400000).toISOString();
-  const [rivers, dams] = await Promise.all([db().from("river_readings").select("*").gte("measured_at", since).order("measured_at", { ascending: true }), db().from("dam_readings").select("*").gte("measured_at", since).order("measured_at", { ascending: true })]);
-  if (rivers.error || dams.error) throw rivers.error ?? dams.error;
-  return { rivers: rivers.data ?? [], dams: dams.data ?? [] };
+  const read = async (table: string) => {
+    const rows: any[] = [];
+    for (let offset = 0; offset < 100000; offset += 1000) {
+      const result = await db().from(table).select('*').gte('measured_at', since)
+        .order('measured_at').order('id').range(offset, offset + 999);
+      if (result.error) throw result.error;
+      rows.push(...(result.data ?? []));
+      if ((result.data?.length ?? 0) < 1000) return rows;
+    }
+    throw new Error('Histórico excede o limite de paginação');
+  };
+  const [rivers, dams] = await Promise.all([read('river_readings'), read('dam_readings')]);
+  return { rivers, dams, retention_days: RETENTION_DAYS };
 }
 
 export async function getForecasts(bridge?: string, hours = 24) {

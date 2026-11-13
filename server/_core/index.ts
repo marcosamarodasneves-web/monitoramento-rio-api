@@ -43,13 +43,15 @@ async function startServer() {
     try { res.json(await getSnapshot()); } catch (error) { res.status(503).json({ error: "hydrology_unavailable", message: String(error) }); }
   });
   app.get("/api/hydrology/history", async (req, res) => {
-    try { res.json(await getHistory(Number(req.query.days ?? 1))); } catch (error) { res.status(503).json({ error: "hydrology_unavailable", message: String(error) }); }
+    const days = Number(req.query.days ?? 1);
+    if (!Number.isFinite(days) || days < 1 || days > 60) { res.status(400).json({ error: 'invalid_history_parameters' }); return; }
+    try { res.json(await getHistory(days)); } catch (error) { res.status(503).json({ error: "hydrology_unavailable", message: String(error) }); }
   });
   app.get("/api/hydrology/forecasts", async (req, res) => {
     res.set("Cache-Control", "no-store");
     const bridge = typeof req.query.bridge === "string" ? req.query.bridge : undefined;
     const hours = Number(req.query.hours ?? 24);
-    if ((bridge && !["dom-tito", "br-470", "ricardo-kanitz"].includes(bridge)) || !Number.isFinite(hours) || hours < 1 || hours > 168) {
+    if ((bridge && !["dom-tito", "br-470", "ricardo-kanitz"].includes(bridge)) || !Number.isFinite(hours) || hours < 1 || hours > 1440) {
       res.status(400).json({ error: "invalid_forecast_parameters" }); return;
     }
     try { res.json(await getForecasts(bridge, hours)); } catch (error) { res.status(503).json({ error: "hydrology_unavailable", message: String(error) }); }

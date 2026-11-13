@@ -1,0 +1,372 @@
+{
+  "status": "completed",
+  "created_at": "2026-11-13T19:49:40.619Z",
+  "model_version": "adaptive-v3",
+  "method": {
+    "replay": "Replay temporal offline a cada 10 minutos; em cada issue treina outcomes elegíveis antes de emitir v2 + adaptive-v3.",
+    "source_table": "river_readings",
+    "access": "read-only",
+    "bridges": [
+      "dom-tito",
+      "br-470",
+      "ricardo-kanitz"
+    ],
+    "retention_days": 60,
+    "evaluation_window_days": 7,
+    "issue_step_minutes": 10,
+    "input_window_hours": 6,
+    "match_window_minutes": 10,
+    "operation_limit": 1000000,
+    "no_tolerance_adjustment": true,
+    "no_writes": true,
+    "no_llm": true
+  },
+  "data": {
+    "rows_read": 570,
+    "valid_rows": 570,
+    "invalid_rows": 0,
+    "retention_cutoff": "2026-09-14T19:49:40.619Z",
+    "dataset_available_start": "2026-11-05T21:01:08.879Z",
+    "dataset_available_end": "2026-11-13T19:46:22.883Z",
+    "dataset_measured_start": "2026-11-05T21:00:00.484Z",
+    "dataset_measured_end": "2026-11-13T19:45:29.680Z",
+    "available_span_days": 7.948,
+    "measured_span_days": 7.948,
+    "distinct_measured_days": 9,
+    "evaluation_start": "2026-11-06T19:46:22.883Z",
+    "evaluation_end": "2026-11-13T19:46:22.883Z",
+    "evaluation_span_days": 7,
+    "observation_days_in_evaluation": 7,
+    "note": "A retenção consultada é de 60 dias, mas a avaliação foi limitada aos 7 dias finais disponíveis para runtime curto."
+  },
+  "replay": {
+    "issues_attempted": 1008,
+    "emissions_attempted": 3024,
+    "v2_available_emissions": 412,
+    "emissions_recorded": 1236,
+    "outcomes_accepted": 34,
+    "outcomes_waiting_for_actual": 0,
+    "outcomes_without_matching_reading": 0,
+    "operation_count": 20983,
+    "stopped_by_operation_limit": false,
+    "states_created": 36,
+    "state_keys": 36,
+    "challenger_created": 0,
+    "challenger_promoted": 0,
+    "champion_rollback": 0,
+    "cold_start": {
+      "initialized_from_initial_learning_state": true,
+      "used_other_users_or_persisted_state": false,
+      "outcomes_before_state_change": "controlled_by_core_minimum_history"
+    }
+  },
+  "scores": [
+    {
+      "bridge": "dom-tito",
+      "horizon_h": 1,
+      "comparisons": 2,
+      "adaptive": {
+        "mae_cm": 2.449,
+        "p90_cm": 3.014,
+        "hit_count": 1,
+        "hit_rate_percent": 50
+      },
+      "v2": {
+        "mae_cm": 2.339,
+        "p90_cm": 3.043,
+        "hit_count": 1,
+        "hit_rate_percent": 50
+      },
+      "persistence": {
+        "mae_cm": 2.5,
+        "p90_cm": 3,
+        "hit_count": 1,
+        "hit_rate_percent": 50
+      },
+      "mae_improvement_v2_minus_adaptive_cm": -0.11,
+      "adaptive_lower_mae_than_v2": false,
+      "margins": {
+        "adaptive_band_cm_mean": 3,
+        "v2_band_cm_mean": 3,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "dom-tito",
+      "horizon_h": 2,
+      "comparisons": 0,
+      "adaptive": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "v2": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "persistence": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "mae_improvement_v2_minus_adaptive_cm": null,
+      "adaptive_lower_mae_than_v2": null,
+      "margins": {
+        "adaptive_band_cm_mean": null,
+        "v2_band_cm_mean": null,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "dom-tito",
+      "horizon_h": 3,
+      "comparisons": 0,
+      "adaptive": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "v2": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "persistence": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "mae_improvement_v2_minus_adaptive_cm": null,
+      "adaptive_lower_mae_than_v2": null,
+      "margins": {
+        "adaptive_band_cm_mean": null,
+        "v2_band_cm_mean": null,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "br-470",
+      "horizon_h": 1,
+      "comparisons": 7,
+      "adaptive": {
+        "mae_cm": 0.412,
+        "p90_cm": 0.744,
+        "hit_count": 7,
+        "hit_rate_percent": 100
+      },
+      "v2": {
+        "mae_cm": 0.469,
+        "p90_cm": 1.052,
+        "hit_count": 7,
+        "hit_rate_percent": 100
+      },
+      "persistence": {
+        "mae_cm": 0.386,
+        "p90_cm": 0.6,
+        "hit_count": 7,
+        "hit_rate_percent": 100
+      },
+      "mae_improvement_v2_minus_adaptive_cm": 0.057,
+      "adaptive_lower_mae_than_v2": true,
+      "margins": {
+        "adaptive_band_cm_mean": 3,
+        "v2_band_cm_mean": 3,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "br-470",
+      "horizon_h": 2,
+      "comparisons": 0,
+      "adaptive": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "v2": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "persistence": {
+        "mae_cm": null,
+        "p90_cm": null,
+        "hit_count": 0,
+        "hit_rate_percent": null
+      },
+      "mae_improvement_v2_minus_adaptive_cm": null,
+      "adaptive_lower_mae_than_v2": null,
+      "margins": {
+        "adaptive_band_cm_mean": null,
+        "v2_band_cm_mean": null,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "br-470",
+      "horizon_h": 3,
+      "comparisons": 3,
+      "adaptive": {
+        "mae_cm": 2.314,
+        "p90_cm": 2.516,
+        "hit_count": 3,
+        "hit_rate_percent": 100
+      },
+      "v2": {
+        "mae_cm": 3.268,
+        "p90_cm": 6.667,
+        "hit_count": 2,
+        "hit_rate_percent": 66.67
+      },
+      "persistence": {
+        "mae_cm": 2.433,
+        "p90_cm": 2.7,
+        "hit_count": 3,
+        "hit_rate_percent": 100
+      },
+      "mae_improvement_v2_minus_adaptive_cm": 0.953,
+      "adaptive_lower_mae_than_v2": true,
+      "margins": {
+        "adaptive_band_cm_mean": 6,
+        "v2_band_cm_mean": 6,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "ricardo-kanitz",
+      "horizon_h": 1,
+      "comparisons": 8,
+      "adaptive": {
+        "mae_cm": 1.923,
+        "p90_cm": 6.263,
+        "hit_count": 6,
+        "hit_rate_percent": 75
+      },
+      "v2": {
+        "mae_cm": 2.395,
+        "p90_cm": 6.333,
+        "hit_count": 6,
+        "hit_rate_percent": 75
+      },
+      "persistence": {
+        "mae_cm": 2.125,
+        "p90_cm": 6,
+        "hit_count": 6,
+        "hit_rate_percent": 75
+      },
+      "mae_improvement_v2_minus_adaptive_cm": 0.472,
+      "adaptive_lower_mae_than_v2": true,
+      "margins": {
+        "adaptive_band_cm_mean": 4.625,
+        "v2_band_cm_mean": 4.625,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "ricardo-kanitz",
+      "horizon_h": 2,
+      "comparisons": 6,
+      "adaptive": {
+        "mae_cm": 6.8,
+        "p90_cm": 28.929,
+        "hit_count": 5,
+        "hit_rate_percent": 83.33
+      },
+      "v2": {
+        "mae_cm": 11.357,
+        "p90_cm": 39.023,
+        "hit_count": 2,
+        "hit_rate_percent": 33.33
+      },
+      "persistence": {
+        "mae_cm": 2.833,
+        "p90_cm": 4,
+        "hit_count": 6,
+        "hit_rate_percent": 100
+      },
+      "mae_improvement_v2_minus_adaptive_cm": 4.557,
+      "adaptive_lower_mae_than_v2": true,
+      "margins": {
+        "adaptive_band_cm_mean": 7.667,
+        "v2_band_cm_mean": 7.667,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    },
+    {
+      "bridge": "ricardo-kanitz",
+      "horizon_h": 3,
+      "comparisons": 8,
+      "adaptive": {
+        "mae_cm": 8.866,
+        "p90_cm": 41.088,
+        "hit_count": 6,
+        "hit_rate_percent": 75
+      },
+      "v2": {
+        "mae_cm": 16.56,
+        "p90_cm": 61.534,
+        "hit_count": 2,
+        "hit_rate_percent": 25
+      },
+      "persistence": {
+        "mae_cm": 4.25,
+        "p90_cm": 11,
+        "hit_count": 8,
+        "hit_rate_percent": 100
+      },
+      "mae_improvement_v2_minus_adaptive_cm": 7.694,
+      "adaptive_lower_mae_than_v2": true,
+      "margins": {
+        "adaptive_band_cm_mean": 9.5,
+        "v2_band_cm_mean": 9.5,
+        "identical_for_all_pairs": true,
+        "adaptive_and_v2_hits_use_same_band": true
+      }
+    }
+  ],
+  "aggregate": {
+    "comparisons": 34,
+    "adaptive_mae_cm": 4.172,
+    "v2_mae_cm": 6.987,
+    "persistence_mae_cm": 2.441,
+    "adaptive_hit_rate_percent": 82.35,
+    "v2_hit_rate_percent": 58.82,
+    "adaptive_lower_mae_than_v2": true,
+    "interpretation": "Neste recorte pareado, o MAE adaptativo ficou abaixo do v2; isso não prova generalização fora da amostra."
+  },
+  "invariants": {
+    "no_future_samples_in_inputs": true,
+    "no_future_actuals_in_training": true,
+    "issued_revision_frozen": true,
+    "states_separated_by_bridge_horizon_regime": true,
+    "v2_adaptive_bands_identical": true,
+    "training_requires_target_plus_10_minutes": true,
+    "actual_requires_measured_and_available_by_issue": true
+  },
+  "caveats": [
+    "Actual availability foi definida como max(measured_at, collected_at); uma leitura futura na medição ou na coleta não entra antes do issue.",
+    "Duplicatas de measured_at são resolvidas no instante do replay pela leitura disponível mais recente; não há deduplicação global que possa vazar uma correção futura.",
+    "O estado adaptativo começa frio por bridge/horizon/regime com initialLearningState; nenhum estado persistido ou dado de outros usuários é importado.",
+    "MAE é pareado no mesmo outcome real para adaptive, v2 e persistência; acerto só conta dentro da band_cm original, idêntica entre v2 e adaptive.",
+    "Amostras temporais próximas são correlacionadas; poucas cheias, poucos dias ou um único evento não demonstram generalização hidrológica.",
+    "Contextos de chuva, montante e barragens não foram inventados no replay; a comparação usa somente river_readings, como o backtest v2 de referência.",
+    "O resultado não autoriza claim de superioridade quando os números não indicarem vantagem consistente; a avaliação é retrospectiva e experimental."
+  ]
+}

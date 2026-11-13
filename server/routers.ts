@@ -17,7 +17,7 @@ export const appRouter = router({
   }),
   hydrology: router({
     snapshot: publicProcedure.query(() => getSnapshot()),
-    history: publicProcedure.input(z.object({ days: z.number().min(1).max(7).default(1) }).optional()).query(({ input }) => getHistory(input?.days ?? 1)),
+    history: publicProcedure.input(z.object({ days: z.number().min(1).max(60).default(1) }).optional()).query(({ input }) => getHistory(input?.days ?? 1)),
     registerAccess: publicProcedure.input(z.object({ kind: z.enum(["app", "api"]).default("api") }).optional()).mutation(({ input }) => registerAccess(input?.kind ?? "api")),
     collectNow: protectedProcedure.mutation(() => collectTick()),
   }),
