@@ -242,6 +242,21 @@ describe("computeForecastV2", () => {
     expect(nextCycle.horizons.every((horizon) => horizon.dam_cm === 0)).toBe(true);
   });
 
+  it("não trata comporta acrescentada à lista como manobra", () => {
+    const eventStart = START + 2 * 60 * 60_000;
+    const samples = damSamples([3, 3, 3], eventStart);
+    // A Defesa Civil acrescenta uma comporta fechada e outra aberta: o total muda, não houve manobra.
+    samples[1] = { ...samples[1], gates_open: 4, gates_total: 5 };
+    samples[2] = { ...samples[2], gates_open: 4, gates_total: 5 };
+    const dam: ForecastV2Dam = { id: "dam-a", name: "Barragem A", samples, lagHours: 0, gateCmPerChange: 2 };
+    const result = computeForecastV2({
+      ...baseInput(linearSamples(5, 6)),
+      dams: [dam],
+      now: eventStart + 12 * 60_000,
+    });
+    expect(result.horizons.every((horizon) => horizon.dam_cm === 0)).toBe(true);
+  });
+
   it("exige lag explícito para peso montante e rejeita nível de ponte negativo", () => {
     const noLag = computeForecastV2({
       ...baseInput(linearSamples(5, 6)),

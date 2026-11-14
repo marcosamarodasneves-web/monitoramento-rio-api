@@ -501,6 +501,8 @@ function damContributions(input: ForecastV2Input, baseMs: number, notes: string[
       const previous = samples[index - 1];
       const current = samples[index];
       if (!validGateCount(previous.gatesOpen, previous.gatesTotal) || !validGateCount(current.gatesOpen, current.gatesTotal)) continue;
+      // Se o total mudou, a Defesa Civil acrescentou ou removeu uma comporta da lista: isso não é manobra.
+      if (current.gatesTotal !== previous.gatesTotal) continue;
       if (current.gatesOpen !== null && previous.gatesOpen !== null && current.gatesOpen !== previous.gatesOpen) {
         gateEvents.push({ delta: current.gatesOpen - previous.gatesOpen, eventTime: current.t });
       }
